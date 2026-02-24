@@ -1,0 +1,1048 @@
+{
+  "name": "AI Agent Project",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "groq/compound-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        64,
+        432
+      ],
+      "id": "9d15f7dd-4974-41f9-884f-e89e06c5f275",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "YacCpe6BAEM1XMNe",
+          "name": "GroqAnuAcc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t \"risk_areas\": [],\n  \"test_categories\": [],\n  \"regression_zones\": []\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        432
+      ],
+      "id": "6e980a92-7d9f-408a-bb4c-335ffc9917d6",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=PR Title: {{ $json.body.pull_request.title }}\n\nChanged Files: {{ $json.body.pull_request.number }}\n\nCommit Message:{{ $json.body.pull_request.body }}\n\nLog Messages : {{ $json.body.ci_logs }}\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an AI release planning agent. Your job is to analyze a PR and break it into structured testing objectives. Always return JSON."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        112,
+        320
+      ],
+      "id": "aaf3e578-3abb-49d3-8493-75ac2f0ea0b8",
+      "name": "Planner Agent"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        16,
+        736
+      ],
+      "id": "1cdf9c20-ba2d-417a-aaed-50f9858b9223",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "YacCpe6BAEM1XMNe",
+          "name": "GroqAnuAcc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"change_type\": \"\",\n  \"risk_level\": \"\",\n  \"reasoning\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        720
+      ],
+      "id": "e2d78092-9af9-414a-85ee-d37d7b0196d5",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Changed Files: {{ $json.body.number }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a code change analysis agent. Classify the type of change and estimate technical risk. Return only JSON."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        112,
+        624
+      ],
+      "id": "8738e4d8-01dc-444b-94c6-12c19f61172e",
+      "name": "Git Diff Analyzer Agent"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        48,
+        128
+      ],
+      "id": "477e394b-9730-49ee-88ec-c149f528751f",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "YacCpe6BAEM1XMNe",
+          "name": "GroqAnuAcc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CI Logs:\n{{ $json.body.pull_request.body }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a CI log analysis agent. Detect failure patterns and severity. Return JSON only."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        128,
+        16
+      ],
+      "id": "5a54a3c2-203b-4bba-9009-400e1002161e",
+      "name": "Log Analyzer Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n   \"failure_type\": \"\",\n  \"severity\": \"\",\n  \"regression_probability\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        128
+      ],
+      "id": "d6609df0-554f-478c-85fd-11f6b99ae661",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 4,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        928,
+        208
+      ],
+      "id": "6269ea80-88fa-485f-b77b-69357fa55a23",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Planner Output:\nRisk Areas: {{ $json.output.risk_areas }}\nTest Categories: {{ $json.output.test_categories }}\nRegression Zones: {{ $json.output.regression_zones }}\nRecurring Modules: {{ $json.output.recurring_modules }}\nFailure Patterns: {{ $json.output.common_failure_patterns }}\nSeverity Trend: {{ $json.output.severity_trend }}\nRAG Risk Weight:{{ $json.output.rag_risk_weight }}\nCode Change:\nChange Type:{{ $json.output.change_type }}\nRisk Level: {{ $json.output.risk_level }}\nReasoning:{{ $json.output.reasoning }}\n\nLog Analysis:\nFailure Type:{{ $json.output.failure_type }}\nSeverity: {{ $json.output.severity }}\nRegression Probability: {{ $json.output.regression_probability }}\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a release risk evaluation agent. Use structured analysis data to compute overall release risk. Return JSON only."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1120,
+        240
+      ],
+      "id": "c24ef3f0-f430-401c-9f6e-3e3df6c4f34b",
+      "name": "Risk Scoring Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"risk_score\": 75,\n  \"confidence\": 0.82,\n  \"justification\": \"Explain reasoning\",\n  \"recommended_action\": \"Manual Review\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1296,
+        464
+      ],
+      "id": "0dbe9d92-cab4-4441-b9eb-13ea50023fd2",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        464
+      ],
+      "id": "b7984bbe-7973-4116-8f1f-a18d74f63425",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "YacCpe6BAEM1XMNe",
+          "name": "GroqAnuAcc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        464
+      ],
+      "id": "ff7f9115-9232-40b9-a329-8c5f2e9ae114",
+      "name": "Groq Chat Model4",
+      "credentials": {
+        "groqApi": {
+          "id": "YacCpe6BAEM1XMNe",
+          "name": "GroqAnuAcc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"validated_risk_score\": 0,\n  \"adjusted_confidence\": 0.0,\n  \"validation_notes\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        464
+      ],
+      "id": "319b1bc2-f858-4873-b764-41472a79fed0",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Risk Assessment:\n\nRisk Score: {{ $json.output.risk_score }}\nConfidence: {{ $json.output.confidence }}\nJustification: {{ $json.output.justification }}\nRecommended Action: {{ $json.output.recommended_action }}\n\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a validation agent. Your job is to critically review a risk assessment. Check for: - Logical inconsistencies - Overconfidence - Missing considerations - Weak reasoning  Adjust risk score or confidence if necessary.  Return strictly valid JSON."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1472,
+        240
+      ],
+      "id": "cf407081-eb20-4ba6-beb0-edf485c1ebc5",
+      "name": "Validator Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d6c77dc2-b089-45c4-b36b-4a8158f5f125",
+              "leftValue": "={{ $json.output.validated_risk_score }}",
+              "rightValue": 0.3,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "e430a286-66ad-4a07-a75e-243c37304ee8",
+              "leftValue": "={{ $json.output.adjusted_confidence }}",
+              "rightValue": 0.8,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1824,
+        240
+      ],
+      "id": "ce9a5345-ca1d-4f3f-ae07-fc6ad1f231c0",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "231044e5-ec12-4e8f-a4a5-785a74320adb",
+              "name": "pr_title",
+              "value": "={{ $json.body.pull_request.title }}",
+              "type": "string"
+            },
+            {
+              "id": "a37a2cbd-1bcd-4a05-87c2-a98c157815d4",
+              "name": "commit_message",
+              "value": "={{ $json.body.pull_request.body }}",
+              "type": "string"
+            },
+            {
+              "id": "de2b89cc-df49-4b6d-ac87-a4057ee3c955",
+              "name": "changed_files",
+              "value": "={{ $json.body.number }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        880
+      ],
+      "id": "415e9f81-bee2-4827-a254-bd52a0d0770b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        880
+      ],
+      "id": "7dfe8aba-d412-48c7-9ce5-e86ad7ff7111",
+      "name": "Simple Vector Store2"
+    },
+    {
+      "parameters": {
+        "modelName": "sentence-transformers/all-MiniLM-L6-v2",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        368,
+        1104
+      ],
+      "id": "b586117d-584b-49e4-a115-47b8d874a3d8",
+      "name": "Embeddings HuggingFace Inference3",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "chFIlpG3hCluzTG4",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        },
+        "prompt": "={{ $('Edit Fields').item.json.pr_title }} {{ $('Edit Fields').item.json.commit_message }} {{ $('Edit Fields').item.json.changed_files }}",
+        "topK": 1
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        880
+      ],
+      "id": "e9b390e7-7f65-40c9-bda0-4d7224ffc32f",
+      "name": "Vector Store Query"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"recurring_modules\": [\"paymentService.js\"],\n  \"common_failure_patterns\": [\"null pointer validation failure\"],\n  \"severity_trend\": \"Increasing high severity payment regressions\",\n  \"rag_risk_weight\": 0.72\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        1104
+      ],
+      "id": "e0825a50-07c5-483e-b45c-f9373f3e3a1e",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the retrieved historical bug documents.\n{{ $json.document }}\nReturn strictly valid JSON matching this structure:\n\n{\n  \"recurring_modules\": [],\n  \"common_failure_patterns\": [],\n  \"severity_trend\": \"\",\n  \"rag_risk_weight\": 0.0\n}\n\nrag_risk_weight must be a number between 0 and 1.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a code change analysis agent. Classify the type of change and estimate technical risk. Return only JSON."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        640,
+        880
+      ],
+      "id": "c5dab91c-7a65-410c-82b3-708fda2c2c9a",
+      "name": "RAG Intelligence Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        656,
+        1104
+      ],
+      "id": "9397b6b8-6c77-45a1-a5c5-9fde3694e76a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dlSi60WmSPrzXfoh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        1024
+      ],
+      "id": "55708d80-d8e8-446f-b7f4-bb6ea114f0b5",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "owner": {
+          "__rl": true,
+          "value": "Anushka-Gurav",
+          "mode": "list",
+          "cachedResultName": "Anushka-Gurav",
+          "cachedResultUrl": "https://github.com/Anushka-Gurav"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "HostelProject",
+          "mode": "list",
+          "cachedResultName": "HostelProject",
+          "cachedResultUrl": "https://github.com/Anushka-Gurav/HostelProject"
+        },
+        "events": [
+          "pull_request"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.githubTrigger",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        304
+      ],
+      "id": "0a2a4dfb-7f23-4850-96b7-0513972285c9",
+      "name": "Github Trigger",
+      "webhookId": "864eca80-f064-4df5-8ea7-ea99713a95a5",
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "r1P3UuZCLRVls9k8",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AG5K69GG7",
+          "mode": "list",
+          "cachedResultName": "git-pr-review"
+        },
+        "text": "=✅ Release Risk Assessment Completed  Risk Score: {{$json.risk_score}} Confidence: {{$json.confidence}}  Status: Safe to merge.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        2080,
+        432
+      ],
+      "id": "b4e1307a-4d3d-4570-9b53-6cfbbca620a4",
+      "name": "Safe to merge",
+      "webhookId": "f467efbe-273a-4512-9d83-d7529afa2e46",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "XO54pM6E7j4HfrRY",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AG5K69GG7",
+          "mode": "list",
+          "cachedResultName": "git-pr-review"
+        },
+        "text": "=🚨 Release flagged for manual review  Validated Risk Score: 🚨 Release flagged for manual review\n\nConfidence:{{ $('Risk Scoring Agent').item.json.output.confidence }}\n\nNotes:{{ $('Validator Agent').item.json.output.validation_notes }}\nReasoning\n{{ $('Merge').item.json.output.reasoning }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        2064,
+        224
+      ],
+      "id": "5ca7956a-6168-43ff-9e55-5b8033ed3a3a",
+      "name": "Critical PR",
+      "webhookId": "6f96a6c9-a074-409b-ae18-d928c68f89a1",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "XO54pM6E7j4HfrRY",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Analyzes CI workflow results\nDetects failed jobs & test patterns",
+        "height": 288,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "b4c0a98b-76d1-437b-a74c-e717d3c24af9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Interprets PR title & commit message\nIdentifies impacted components",
+        "height": 288,
+        "width": 592,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "20c33f2c-622b-423c-b932-2c99c98ebc9a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Classifies change type (feature, refactor, fix)\nDetects critical modules touched",
+        "height": 256,
+        "width": 592,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        576
+      ],
+      "typeVersion": 1,
+      "id": "8fc738d3-237c-47d1-8fb1-e18e43fbfa0b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nStores past bug patterns\nRetrieves similar historical failures\nExtracts recurring risk signals\nGenerates contextual risk weight",
+        "height": 400,
+        "width": 1168
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -256,
+        848
+      ],
+      "typeVersion": 1,
+      "id": "af4d8f0f-2121-4e0d-95ac-c7e6b83c23b4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "modelName": "sentence-transformers/all-MiniLM-L6-v2",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        32,
+        1008
+      ],
+      "id": "09d58682-5ea2-4066-99cc-579b1ad3dba6",
+      "name": "Embeddings HuggingFace",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "chFIlpG3hCluzTG4",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Aggregates multi-agent signals\nComputes risk score (0–100)",
+        "height": 416,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "182e432f-9c9e-433a-8518-0eba79ff34dc",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Verifies risk scoring logic\nDetects inconsistencies",
+        "height": 416,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1440,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "87f2f0ae-dc86-42cd-8046-ce2358c5e535",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Planner Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Planner Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planner Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Git Diff Analyzer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Git Diff Analyzer Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git Diff Analyzer Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Log Analyzer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Log Analyzer Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Analyzer Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Risk Scoring Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Risk Scoring Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Risk Scoring Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk Scoring Agent": {
+      "main": [
+        [
+          {
+            "node": "Validator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Validator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Validator Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validator Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Critical PR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Safe to merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store2": {
+      "main": [
+        [
+          {
+            "node": "Vector Store Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace Inference3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store Query",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "RAG Intelligence Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Query": {
+      "main": [
+        [
+          {
+            "node": "RAG Intelligence Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RAG Intelligence Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Intelligence Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store2",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github Trigger": {
+      "main": [
+        [
+          {
+            "node": "Log Analyzer Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Planner Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Git Diff Analyzer Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e3b9cd54-9df7-4499-933c-4640c8bc9405",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6c3e478a60f9c81a8a6cf97954da409733a5f57c14047390969656a6990b9ae3"
+  },
+  "id": "7Ri4dACyvVq3Uyzt",
+  "tags": []
+}
